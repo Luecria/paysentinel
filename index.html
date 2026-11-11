@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PayPilot — the AI purchasing agent with a spending firewall</title>
+<link rel="stylesheet" href="src/style.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.3/dist/styles/ag-grid.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.3/dist/styles/ag-theme-quartz.css" />
+</head>
+<body>
+<header>
+  <h1>🛡️ PayPilot</h1>
+  <p class="tagline">An AI purchasing agent that plans your shopping — and a deterministic
+  <strong>spending firewall</strong> that verifies every cart before PayPal moves a cent.</p>
+  <p class="flow">AI proposes → firewall verifies → PayPal pays. Nothing reaches checkout unless every rule passes.</p>
+</header>
+
+<main>
+  <section class="card" id="mission-card">
+    <h2>1 · Give the agent a mission</h2>
+    <label>Mission
+      <textarea id="mission" rows="2">Set up a work-from-home corner for video calls: headphones, a webcam and a decent chair</textarea>
+    </label>
+    <div class="row">
+      <label>Hard budget (USD)
+        <input id="budget" type="number" min="10" step="1" value="400" />
+      </label>
+      <button id="plan-btn" class="primary">Plan with agent</button>
+      <button id="rogue-btn" class="danger">Simulate rogue agent</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+    <p class="hint" id="planner-mode">Planner: built-in offline planner (no setup). Add an AI key in Settings to use a live LLM — the firewall treats its output as untrusted either way.</p>
+  </section>
+
+  <section class="card" id="cart-card">
+    <h2>2 · Agent's proposed cart</h2>
+    <table id="cart-table">
+      <thead><tr><th>Item</th><th>Qty</th><th>Unit price</th><th>Line total</th><th>Why the agent picked it</th></tr></thead>
+      <tbody id="cart-body"><tr><td colspan="5" class="empty">No plan yet — give the agent a mission.</td></tr></tbody>
+      <tfoot><tr><td colspan="3">Total</td><td id="cart-total">$0.00</td><td></td></tr></tfoot>
+    </table>
+  </section>
+
+  <section class="card" id="guard-card">
+    <h2>3 · Spending firewall verdict</h2>
+    <div id="verdict" class="verdict neutral">Waiting for a cart…</div>
+    <ul id="guard-list"></ul>
+  </section>
+
+  <section class="card" id="pay-card">
+    <h2>4 · Pay with PayPal (sandbox)</h2>
+    <p class="hint" id="paypal-status">PayPal buttons unlock only when the firewall approves the cart.</p>
+    <div id="paypal-buttons"></div>
+    <div id="receipt" class="receipt" hidden></div>
+  </section>
+
+  <section class="card" id="audit-card">
+    <h2>5 · Audit trail</h2>
+    <div id="audit-grid" class="ag-theme-quartz" style="height: 260px; width: 100%;"></div>
+    <table id="audit-fallback" hidden>
+      <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Detail</th><th>Verdict</th></tr></thead>
+      <tbody id="audit-body"></tbody>
+    </table>
+  </section>
+
+  <section class="card" id="settings-card">
+    <h2>Settings</h2>
+    <div class="grid2">
+      <label>PayPal sandbox Client ID
+        <input id="cfg-client-id" type="text" placeholder="Paste your sandbox Client ID" autocomplete="off" />
+      </label>
+      <label>AI endpoint (OpenAI-compatible)
+        <input id="cfg-ai-base" type="text" value="https://api.openai.com/v1" autocomplete="off" />
+      </label>
+      <label>AI API key (stored only in your browser)
+        <input id="cfg-ai-key" type="password" placeholder="Optional — enables live LLM planning" autocomplete="off" />
+      </label>
+      <label>AI model
+        <input id="cfg-ai-model" type="text" value="gpt-4o-mini" autocomplete="off" />
+      </label>
+    </div>
+    <button id="save-settings">Save settings</button>
+    <p class="hint">Everything runs in your browser. The AI key never leaves this page except to the endpoint you configured. PayPal runs in sandbox mode — no real money moves.</p>
+  </section>
+</main>
+
+<footer>
+  <p>PayPilot — built for the PayPal AI Hackathon. AI proposes, rules dispose.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.3/dist/ag-grid-community.min.js"></script>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

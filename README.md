@@ -1,0 +1,90 @@
+# PayPilot — the AI purchasing agent with a spending firewall
+
+**AI proposes → firewall verifies → PayPal pays.**
+
+PayPilot is an AI purchasing agent. You give it a mission ("set up a
+work-from-home corner for video calls") and a **hard budget**. The agent
+proposes an itemized cart and explains every pick. Before any money can
+move, a deterministic **spending firewall** verifies the cart:
+
+- **G1 Budget** — cart total must be within the hard budget
+- **G2 Catalog integrity** — every item must exist in the catalog at
+  exactly the catalog price (catches hallucinated items and price tampering)
+- **G3 No duplicates** — quantities are folded into single lines
+- **G4 Quantity sanity** — 1–5 per item
+- **G5 Non-empty** — nothing to pay for nothing
+
+Only an approved cart unlocks the PayPal checkout button. A built-in
+**"Simulate rogue agent"** button feeds the firewall a tampered cart
+(inflated price, duplicate line, fake SKU, over budget) and shows it
+being blocked, with every decision written to an audit trail.
+
+## Why this exists
+
+AI agents are starting to spend real money. The unsafe pattern is
+letting a language model's output flow straight into a payment API.
+PayPilot demonstrates the safer pattern: the model proposes, plain
+deterministic rules verify, and only then does PayPal execute. The
+model can be wrong, manipulated, or compromised — the firewall does
+not care, because it never trusts the model's numbers.
+
+## Run it
+
+It's a static site — no build step, no server.
+
+```bash
+# any static server works, e.g.:
+npx serve .
+# or
+python3 -m http.server 8000
+```
+
+Then open the page and:
+
+1. (Optional) In **Settings**, paste a **PayPal sandbox Client ID**
+   (from https://developer.paypal.com → Apps & Credentials → Sandbox).
+   Without it, planning and the firewall work fully; checkout stays
+   locked with an explanation. You can also pass `?client-id=...` in
+   the URL.
+2. Give the agent a mission and a budget, click **Plan with agent**.
+3. Watch the firewall verdict, then pay with PayPal sandbox.
+4. Try **Simulate rogue agent** to see the firewall block a bad cart.
+
+## AI modes
+
+- **Offline planner (default)** — deterministic keyword/tag matching
+  over the built-in catalog (`src/catalog.js`). Zero setup; this is
+  what judges get out of the box.
+- **Live LLM (optional)** — bring your own key for any
+  OpenAI-compatible endpoint (Settings). The model must pick catalog
+  SKUs; its output is re-resolved against the catalog, prices are
+  taken from the catalog (never from the model), and the firewall
+  still has the final say.
+
+## Tools used (hackathon disclosure)
+
+- **PayPal** — JavaScript SDK, sandbox, client-side order create +
+  capture with itemized purchase units.
+- **AG Grid** (community edition, CDN) — the audit-trail grid.
+- **AI** — an OpenAI-compatible chat model (optional, BYO key) for
+  cart planning; built-in deterministic planner as default/fallback.
+- Plain HTML/CSS/JS modules. No build tooling.
+
+## Tests
+
+```bash
+node test/logic.test.mjs   # 10 checks: guard rules, planner budget discipline, rogue-cart blocking
+```
+
+## Layout
+
+- `index.html` — the app shell
+- `src/catalog.js` — demo catalog (the guard's source of truth)
+- `src/planner.js` — offline planner, LLM planner, rogue-cart generator
+- `src/guard.js` — the spending firewall (pure functions, unit-tested)
+- `src/app.js` — UI wiring, PayPal checkout, audit trail
+- `src/style.css`
+
+## License
+
+MIT — see `LICENSE`.
