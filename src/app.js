@@ -159,7 +159,7 @@ async function maybeRenderPayPal(result) {
       const total = moneyStr(cartTotal(cart));
       const order = actions.order.create({
         purchase_units: [{
-          description: "PayPilot agent cart (firewall approved)",
+          description: "PaySentinel agent cart (firewall approved)",
           amount: {
             currency_code: "USD",
             value: total,
