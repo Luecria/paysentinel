@@ -1,7 +1,7 @@
 // Dependency-free logic tests: node test/logic.test.mjs
 import assert from "node:assert";
 import { runGuard, cartTotal } from "../src/guard.js";
-import { planOffline, rogueCart } from "../src/planner.js";
+import { planOffline, rogueCart, rogueCartSubtle } from "../src/planner.js";
 import { catalogBySku } from "../src/catalog.js";
 
 let passed = 0;
@@ -72,6 +72,21 @@ t("rogue cart is blocked on at least three rules", () => {
   assert.equal(r.approved, false);
   const fails = r.checks.filter((c) => !c.pass).map((c) => c.id);
   assert.ok(fails.includes("G1_BUDGET") && fails.includes("G2_CATALOG") && fails.includes("G3_NO_DUPES"), `fails: ${fails}`);
+});
+
+t("subtle rogue cart stays under budget (G1 passes)", () => {
+  const cart = rogueCartSubtle(400);
+  assert.ok(cart.length > 0);
+  assert.ok(cartTotal(cart) <= 400, `total ${cartTotal(cart)} must stay under budget`);
+  const r = runGuard(cart, 400);
+  assert.equal(r.checks.find((c) => c.id === "G1_BUDGET").pass, true);
+});
+
+t("subtle rogue cart is blocked by G2 alone", () => {
+  const r = runGuard(rogueCartSubtle(400), 400);
+  assert.equal(r.approved, false);
+  const fails = r.checks.filter((c) => !c.pass).map((c) => c.id);
+  assert.deepEqual(fails, ["G2_CATALOG"], `only G2 may fail, got: ${fails}`);
 });
 
 console.log(`\n${passed} tests passed`);
