@@ -11,13 +11,20 @@ move, a deterministic **spending firewall** verifies the cart:
 - **G2 Catalog integrity** — every item must exist in the catalog at
   exactly the catalog price (catches hallucinated items and price tampering)
 - **G3 No duplicates** — quantities are folded into single lines
-- **G4 Quantity sanity** — 1–5 per item
+- **G4 Quantity sanity** — 1–5 per item (an anti-hoarding bound:
+  missions are household-scale, so more than 5 of one item signals a
+  runaway or manipulated plan, not a genuine need)
 - **G5 Non-empty** — nothing to pay for nothing
 
 Only an approved cart unlocks the PayPal checkout button. A built-in
 **"Simulate rogue agent"** button feeds the firewall a tampered cart
 (inflated price, duplicate line, fake SKU, over budget) and shows it
-being blocked, with every decision written to an audit trail.
+being blocked, with every decision written to an audit trail. A second
+button, **"Simulate subtle tamper"**, is the harder test: every line
+is a real catalog item, the total stays *under* budget, and the only
+defect is one price quietly marked up 5% — G1 passes, and G2 alone
+has to catch it. As defense in depth, the guard also re-runs at the
+moment a PayPal order is created, not only when the button renders.
 
 ## Why this exists
 
@@ -27,6 +34,19 @@ PaySentinel demonstrates the safer pattern: the model proposes, plain
 deterministic rules verify, and only then does PayPal execute. The
 model can be wrong, manipulated, or compromised — the firewall does
 not care, because it never trusts the model's numbers.
+
+## Catalog trust
+
+G2 is only as strong as the catalog it checks against, so the trust
+story is stated plainly. In this demo the catalog is a small curated
+list shipped in the repo (`src/catalog.js`) — it is the guard's
+source of truth, and it is deliberately *not* writable by the agent:
+the planner can only reference it. In production the same design
+takes the catalog from merchant-signed feeds, with prices
+cross-checked against a second independent source before G2 trusts
+them; if the catalog itself were compromised, price integrity would
+need that second source, which is why it is part of the roadmap
+rather than silently assumed here.
 
 ## Run it
 
@@ -73,7 +93,7 @@ Then open the page and:
 ## Tests
 
 ```bash
-node test/logic.test.mjs   # 10 checks: guard rules, planner budget discipline, rogue-cart blocking
+node test/logic.test.mjs   # 12 checks: guard rules, planner budget discipline, rogue-cart blocking (loud and subtle)
 ```
 
 ## Layout
