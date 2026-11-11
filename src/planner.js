@@ -1,4 +1,4 @@
-// PayPilot planner: turns a mission + budget into a proposed cart.
+// PaySentinel planner: turns a mission + budget into a proposed cart.
 //
 // Two modes:
 //  - offline (default): deterministic keyword/tag scoring over the

@@ -1,4 +1,4 @@
-// PayPilot demo catalog. Prices in USD. The guard treats this file as the
+// PaySentinel demo catalog. Prices in USD. The guard treats this file as the
 // single source of truth: any cart line whose price differs from the
 // catalog price is blocked as tampered.
 export const CATALOG = [

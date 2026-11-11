@@ -1,4 +1,4 @@
-// PayPilot spending firewall.
+// PaySentinel spending firewall.
 //
 // The AI agent PROPOSES a cart. This deterministic guard DISPOSES: it
 // verifies the cart against the catalog and the user's hard budget
