@@ -98,6 +98,29 @@ export async function planWithLLM(mission, budgetUsd, cfg) {
   return cart;
 }
 
+// A subtly tampered cart: every line is a real catalog item, the
+// quantities are sane, there are no duplicates, and the total stays
+// UNDER budget — so G1, G3, G4 and G5 all pass. The only defect is
+// one line's price quietly marked up 5% above the catalog price.
+// Only G2 (catalog integrity) can catch this. The guard must block it.
+export function rogueCartSubtle(budgetUsd) {
+  const honest = CATALOG.find((i) => i.sku === "AU-BUDS");
+  const marked = CATALOG.find((i) => i.sku === "AU-ANC");
+  const markedUp = Math.round(marked.price * 1.05 * 100) / 100;
+  const lines = [
+    { sku: honest.sku, qty: 1, unitPrice: honest.price, why: "rogue-subtle: honest line at the catalog price", source: "rogue" },
+    { sku: marked.sku, qty: 1, unitPrice: markedUp, why: "rogue-subtle: price quietly marked up 5% — total still under budget", source: "rogue" },
+  ];
+  const total = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0);
+  if (total <= budgetUsd) return lines;
+  // Very small budget: fall back to a single cheap line, still only
+  // defective in price, so the demonstration isolates G2.
+  const cheap = CATALOG.find((i) => i.sku === "WL-BAND");
+  return [
+    { sku: cheap.sku, qty: 1, unitPrice: Math.round(cheap.price * 1.05 * 100) / 100, why: "rogue-subtle: price quietly marked up 5% — total still under budget", source: "rogue" },
+  ];
+}
+
 // A deliberately tampered cart for the "rogue agent" demo: inflated
 // price, duplicate line, over-budget total. The guard must block it.
 export function rogueCart(budgetUsd) {

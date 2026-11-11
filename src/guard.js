@@ -54,7 +54,10 @@ export function runGuard(cart, budgetUsd) {
     dupes.length === 0 ? "all SKUs unique" : `duplicate: ${dupes.map((l) => l.sku).join(", ")}`
   );
 
-  // G4 — quantity sanity per line
+  // G4 — quantity sanity per line. The cap of 5 is an anti-hoarding
+  // bound: missions are household-scale, so a line asking for more
+  // than 5 of one item signals a runaway or manipulated plan,
+  // not a genuine need.
   const badQty = cart.filter((l) => !Number.isInteger(l.qty) || l.qty < 1 || l.qty > MAX_QTY_PER_ITEM);
   push(
     "G4_QTY",

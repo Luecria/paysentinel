@@ -1,6 +1,6 @@
 import { CATALOG, catalogBySku } from "./catalog.js";
 import { runGuard, cartTotal, verdictLabel } from "./guard.js";
-import { planOffline, planWithLLM, rogueCart } from "./planner.js";
+import { planOffline, planWithLLM, rogueCart, rogueCartSubtle } from "./planner.js";
 
 const $ = (id) => document.getElementById(id);
 const money = (n) => `$${Number(n).toFixed(2)}`;
@@ -156,6 +156,15 @@ async function maybeRenderPayPal(result) {
   container.innerHTML = "";
   window.paypal.Buttons({
     createOrder: (data, actions) => {
+      // Defense in depth: never trust the render-time verdict alone.
+      // Re-run the full guard at the moment the order is created and
+      // refuse to create the order if the cart no longer passes.
+      const budget = Number($("budget").value) || 0;
+      const recheck = runGuard(cart, budget);
+      if (!recheck.approved) {
+        audit("firewall", "ORDER_REFUSED", "guard re-check at order creation failed — no order created", "blocked");
+        throw new Error("Spending firewall blocked this order at creation time.");
+      }
       const total = moneyStr(cartTotal(cart));
       const order = actions.order.create({
         purchase_units: [{
@@ -217,6 +226,16 @@ $("rogue-btn").addEventListener("click", () => {
   const budget = Number($("budget").value) || 0;
   cart = rogueCart(budget);
   audit("rogue-agent", "PLAN_PROPOSED", "tampered cart: inflated price, duplicate line, fake SKU, over budget", "pending");
+  const result = runGuard(cart, budget);
+  for (const c of result.checks) audit("firewall", c.id, c.detail, c.pass ? "pass" : "FAIL");
+  audit("firewall", "VERDICT", verdictLabel(result) + " — PayPal checkout stayed locked", result.approved ? "approved" : "blocked");
+  refresh();
+});
+
+$("rogue-subtle-btn").addEventListener("click", () => {
+  const budget = Number($("budget").value) || 0;
+  cart = rogueCartSubtle(budget);
+  audit("rogue-agent", "PLAN_PROPOSED", "subtly tampered cart: one price marked up 5%, total still under budget — only G2 can catch it", "pending");
   const result = runGuard(cart, budget);
   for (const c of result.checks) audit("firewall", c.id, c.detail, c.pass ? "pass" : "FAIL");
   audit("firewall", "VERDICT", verdictLabel(result) + " — PayPal checkout stayed locked", result.approved ? "approved" : "blocked");
