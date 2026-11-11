@@ -1,8 +1,8 @@
-# PayPilot — the AI purchasing agent with a spending firewall
+# PaySentinel — the AI purchasing agent with a spending firewall
 
 **AI proposes → firewall verifies → PayPal pays.**
 
-PayPilot is an AI purchasing agent. You give it a mission ("set up a
+PaySentinel is an AI purchasing agent. You give it a mission ("set up a
 work-from-home corner for video calls") and a **hard budget**. The agent
 proposes an itemized cart and explains every pick. Before any money can
 move, a deterministic **spending firewall** verifies the cart:
@@ -23,7 +23,7 @@ being blocked, with every decision written to an audit trail.
 
 AI agents are starting to spend real money. The unsafe pattern is
 letting a language model's output flow straight into a payment API.
-PayPilot demonstrates the safer pattern: the model proposes, plain
+PaySentinel demonstrates the safer pattern: the model proposes, plain
 deterministic rules verify, and only then does PayPal execute. The
 model can be wrong, manipulated, or compromised — the firewall does
 not care, because it never trusts the model's numbers.
